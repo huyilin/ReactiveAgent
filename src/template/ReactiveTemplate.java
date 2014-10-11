@@ -19,13 +19,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private Random random;
 	private double pPickup;
 
-	private class strateState {
+	private class pdState {
 		int currentCity;
 		int destineCity;
-		String key = String.valueOf(i)
+		
 	}
 	
-	private class strateAction {
+	private class pdAction {
 		int iftake;
 		int nextCity;
 		
@@ -33,7 +33,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	
 	
 	
-	public int Reward (strateState s, Action a) {
+	public int Reward (pdState s, pdAction a) {
 		return 1;
 	}
 	
