@@ -1,5 +1,7 @@
 package template;
 
+import java.util.List;
+import java.util.HashMap;
 import java.util.Random;
 
 import logist.simulation.Vehicle;
@@ -12,16 +14,28 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+
 import java.util.HashSet;
 
 public class ReactiveTemplate implements ReactiveBehavior {
 
 	private Random random;
 	private double pPickup;
-	private HashMap <String key, pdState s> = new HashMap<String, pdState> ();
+	private HashMap <String, pdState> stateMap= new HashMap<String, pdState> ();
+	private HashMap <String, pdAction> actionMap= new HashMap<String, pdAction> ();
+	private int cityNum;
+	private List<City> cityList;
 	
-	public void stateActionInit () {
-		
+	public void stateMapInit (List<City> cityList) {
+		for(City city : cityList) {
+			city.id;
+		}
+	}
+	
+	public void actionMapInit (List<City> cityList) {
+		for(City city : cityList) {
+			
+		}
 	}
 			
 	public int Reward (pdState s, pdAction a) {
@@ -29,10 +43,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	}
 	
 	
-	public void policyInit() {
-		stateAcitonInit() {
-			
-		}
+	public void policyInit(Topology topology) {
+		stateMapInit(cityList);
+		actionMapInit(cityList);
 		
 		
 	}
@@ -46,7 +59,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		this.random = new Random();
 		this.pPickup = discount;
-		this.policyInit();
+		this.cityNum = topology.cities().size();
+		this.policyInit(topology);
+		this.cityList = topology.cities();
 	}
 
 	@Override
