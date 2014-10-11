@@ -18,27 +18,21 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	private Random random;
 	private double pPickup;
-
-	private class pdState {
-		int currentCity;
-		int destineCity;
+	private HashMap <String key, pdState s> = new HashMap<String, pdState> ();
+	
+	public void stateActionInit () {
 		
 	}
-	
-	private class pdAction {
-		int iftake;
-		int nextCity;
-		
-	}
-	
-	
-	
+			
 	public int Reward (pdState s, pdAction a) {
-		return 1;
+		
 	}
+	
 	
 	public void policyInit() {
-		
+		stateAcitonInit() {
+			
+		}
 		
 		
 	}
