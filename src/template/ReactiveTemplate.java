@@ -12,12 +12,36 @@ import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+import java.util.HashSet;
 
 public class ReactiveTemplate implements ReactiveBehavior {
 
 	private Random random;
 	private double pPickup;
 
+	private class strateState {
+		int currentCity;
+		int destineCity;
+		String key = String.valueOf(i)
+	}
+	
+	private class strateAction {
+		int iftake;
+		int nextCity;
+		
+	}
+	
+	
+	
+	public int Reward (strateState s, Action a) {
+		return 1;
+	}
+	
+	public void policyInit() {
+		
+		
+		
+	}
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 
@@ -28,6 +52,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		this.random = new Random();
 		this.pPickup = discount;
+		this.policyInit();
 	}
 
 	@Override
