@@ -15,7 +15,6 @@ import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
-import java.util.HashSet;
 
 public class ReactiveTemplate implements ReactiveBehavior {
 
@@ -23,32 +22,40 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private double pPickup;
 	private HashMap <String, pdState> stateMap= new HashMap<String, pdState> ();
 	private HashMap <String, pdAction> actionMap= new HashMap<String, pdAction> ();
-	private int cityNum;
 	private List<City> cityList;
 	
 	public void stateMapInit (List<City> cityList) {
-		for(City city : cityList) {
-			city.id;
+		for(City current : cityList) {
+			pdState noPackage = new pdState(current.id, 0);
+			stateMap.put(noPackage.key, noPackage);
+			for(City destine : cityList) {
+				if (destine.id != current.id) {
+					pdState state = new pdState(current.id, destine.id);
+					
+				}
+			}
 		}
 	}
 	
 	public void actionMapInit (List<City> cityList) {
 		for(City city : cityList) {
-			
+			pdAction actionA = new pdAction(0, city.id);
+			pdAction actionB = new pdAction(1, city.id);
+			actionMap.put(actionA.key, actionA);
+			actionMap.put(actionA.key, actionB);
 		}
 	}
 			
 	public int Reward (pdState s, pdAction a) {
-		
+		return 1;
 	}
 	
 	
 	public void policyInit(Topology topology) {
 		stateMapInit(cityList);
 		actionMapInit(cityList);
-		
-		
 	}
+	
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 
@@ -59,7 +66,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		this.random = new Random();
 		this.pPickup = discount;
-		this.cityNum = topology.cities().size();
 		this.policyInit(topology);
 		this.cityList = topology.cities();
 	}
