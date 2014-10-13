@@ -57,13 +57,15 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	}
 	
 	public double probability(pdState state, pdAction action, pdState nextState) {
-		if (action.iftake && state.destineCity == null) {
+		if (action.iftake && !state.hasPackage) {
 			return 0;
 		} else if(action.iftake && state.destineCity.id == nextState.currentCity.id) {
 				return TD.probability(nextState.currentCity, nextState.destineCity);
 		} else if (!action.iftake && action.nextCity.id == nextState.currentCity.id) {
+//			System.out.println(nextState.currentCity);
+//			System.out.println(nextState.destineCity);
 			return TD.probability(nextState.currentCity, nextState.destineCity);
-		} else return 0;		
+		} else return 0;
 	}
 	
 		
@@ -126,9 +128,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			count++;
 			bestPolicyMap = tempPolicyMap;
 			bestPolicyValueMap = tempPolicyValueMap;
-			for (Entry<String, Double> a : tempPolicyValueMap.entrySet()){ 
-				System.out.println(a.getKey()+ a.getValue().toString());
-			}
+//			for (Entry<String, Double> a : tempPolicyValueMap.entrySet()){ 
+//				System.out.println(a.getKey()+ a.getValue().toString());
+//			}
 		}
 	}
 	
@@ -137,40 +139,38 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
+		
 		Double discount = agent.readProperty("discount-factor", Double.class,
 				0.95);
-
+		this.TD = td;
 		this.random = new Random();
 		this.pPickup = discount;
-		System.out.println(discount);
+//		System.out.println(discount);
 		this.cityList = topology.cities();
 		this.policyInit(topology);
-		TD = td;
-	}
-	
-	public double vFunction(String s){     // get the value of V(s')
-		double value = 0;
-  		String[] keyArray = s.split(",");  // s is in the form of "state + action + nextState"
-		String key = keyArray[2];          // extract s'
-		for (Entry<String, Double> tempPolicyValue : tempPolicyValueMap.entrySet()){
-			if (tempPolicyValue.getKey() == key){
-				value = tempPolicyValue.getValue();
-			}
+		int count = 0;
+		for (Entry<String, pdAction> entry : bestPolicyMap.entrySet()) {
+			System.out.println(entry.getKey() + '~' + entry.getValue().key );
+			count ++;
 		}
-		return value;
+		System.out.println(count);
 	}
 
 	@Override
 	public Action act(Vehicle vehicle, Task availableTask) {
-		Action action;
-		City currentCity = vehicle.getCurrentCity();		
-		
-		if (availableTask == null || random.nextDouble() > pPickup) {
-			//City currentCity = vehicle.getCurrentCity();
-			action = new Move(currentCity.randomNeighbor(random));
-		} else {
-			action = new Pickup(availableTask);
-		}
-		return action;
+        Action action;
+        City currentCity = vehicle.getCurrentCity();
+        
+        if (availableTask == null || random.nextDouble() > pPickup) {    // no task, next City = pdAction's nextCity
+        	
+        	String stateKey = new pdState(currentCity).key;
+    		action = new Move(bestPolicyMap.get(stateKey).nextCity);
+
+        } else {   // package in city
+        	String statekey1 = new pdState(currentCity, availableTask.deliveryCity).key;
+        	action = new Move(bestPolicyMap.get(statekey1).nextCity);
+        	
+        }
+        return action;
 	}
 }
