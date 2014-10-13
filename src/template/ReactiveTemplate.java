@@ -28,7 +28,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private HashMap <String, Double> bestPolicyValueMap = new HashMap<String, Double>();
 	private HashMap <String, pdAction> tempPolicyMap = new HashMap<String, pdAction>();
 	private HashMap <String, Double> tempPolicyValueMap = new HashMap<String, Double>();
-	private HashMap <String, Double> probabilityMap = new HashMap<String, Double>();
 	private HashMap <String, Double> rewardMap = new HashMap<String, Double>();
 	private int cityNum;
 	private List<City> cityList;
@@ -56,31 +55,18 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 	}
 	
-	public void probilityMapInit(pdState s, pdAction a){
-		double probability;
-		String probabilityKey="";
-
-		//pdState state = new pdState();
-		for (	Entry<String, pdState> state : stateMap.entrySet()){
-			for (Entry<String, pdState> statePrime : stateMap.entrySet()){
-				for (Entry<String, pdAction> action : actionMap.entrySet()){
-					probabilityKey = state.getKey() + ',' + action.getKey() + ',' + statePrime.getKey();
-					probability = TD.probability(state.getValue().currentCity, statePrime.getValue().currentCity);
-					if (state != statePrime){								//s != s'
-						probabilityMap.put(probabilityKey, probability);
-					}
-					else{                                                  	// s = s'
-						probabilityMap.put(probabilityKey, 0.0);
-					}
-				}
-				
-			}
-		}
+	public double probability(pdState state, pdAction action, pdState nextState) {
+		if (action.iftake && state.destineCity == null) {
+			return 0;
+		} else if(action.iftake && state.destineCity.id == nextState.currentCity.id) {
+				return TD.probability(nextState.currentCity, nextState.destineCity);
+		} else if (!action.iftake && action.nextCity.id == nextState.currentCity.id) {
+			return TD.probability(nextState.currentCity, nextState.destineCity);
+		} else return 0;		
 	}
 	
 		
-	public void rewardInit(){
-		String rewardKey = "";
+	public void reward(pdState state, pdAction action ){
 		double reward;
 		for (Entry<String, pdState> state : stateMap.entrySet()){
 			for (Entry<String, pdAction> action : actionMap.entrySet()){
@@ -126,15 +112,19 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		double temp = 0;
 		stateMapInit(cityList);
 		actionMapInit(cityList);
+		tempbestPolicyMapInit();
+		rewardInit();
+	
 		for (Entry<String, pdState> state : stateMap.entrySet()){
 			quantity = 0;
 			quantityNew = 0;
 			for (Entry<String, pdAction> action : actionMap.entrySet()){
 				temp = 0;
-				for (Entry<String, Double> transition : probabilityMap.entrySet()){
-					temp = temp + (pPickup) * (transition.getValue()) * (vFunction(transition.getKey()));
+				for (Entry<String, pdState> nextState : stateMap.entrySet()){
+					temp = temp + probability(state.getValue(), action.getValue(), nextState.getValue()) * vFunction(nextState.getKey());
 				}
-				quantityNew = rewardFunction(state.getKey(), action.getKey()) + temp;
+				temp = temp*pPickup;
+				quantityNew = reward(state.getKey(), action.getKey()) + temp;
 				if (quantityNew > quantity){
 					quantity = quantityNew;
 					tempPolicyMap.put(state.getKey(), action.getValue());
@@ -147,6 +137,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		for (Entry<String, Double> a : tempPolicyValueMap.entrySet()){ 
 			System.out.println(a.getKey()+ a.getValue().toString());
 		}
+		
 	}
 	
 	@Override
@@ -159,15 +150,16 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		this.random = new Random();
 		this.pPickup = discount;
+		System.out.println(discount);
 		this.cityNum = topology.cities().size();
-		this.policyInit(topology);
 		this.cityList = topology.cities();
+		this.policyInit(topology);
 		TD = td;
 	}
 	
 	public double vFunction(String s){     // get the value of V(s')
 		double value = 0;
-  		String[] keyArray = s.split(",");  // s is in the form of "state + action + statePrime"
+  		String[] keyArray = s.split(",");  // s is in the form of "state + action + nextState"
 		String key = keyArray[2];          // extract s'
 		for (Entry<String, Double> tempPolicyValue : tempPolicyValueMap.entrySet()){
 			if (tempPolicyValue.getKey() == key){
@@ -175,25 +167,12 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			}
 		}
 		return value;
-	}
-	
-	public double rewardFunction(String s, String a){
-		double reward = 0;
-		String key = s + a;
-		for (Entry<String, Double> r : rewardMap.entrySet()){
-			if (r.getKey() == key){
-				reward = r.getValue();
-			}
-		}
-		return reward;
-	}
-	
+	}	
 
 	@Override
 	public Action act(Vehicle vehicle, Task availableTask) {
 		Action action;
 		City currentCity = vehicle.getCurrentCity();		
-		
 		
 		if (availableTask == null || random.nextDouble() > pPickup) {
 			//City currentCity = vehicle.getCurrentCity();

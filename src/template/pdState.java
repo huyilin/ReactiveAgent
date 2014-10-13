@@ -10,13 +10,13 @@ public class pdState {
 		this.currentCity = currentCity;
 		this.destineCity = destineCity;
 		this.key = Integer.toString(currentCity.id) + ',' + Integer.toString(destineCity.id);
-		this.ifPackage = false;
+		this.ifPackage = true;
 	}
 	
 	public pdState (City currentCity) {
 		this.currentCity = currentCity;
 		this.destineCity = null;
-		this.ifPackage = true;
+		this.ifPackage = false;
 		this.key = Integer.toString(currentCity.id) + ',' + Integer.toString(-1);
 	}
 }
