@@ -70,11 +70,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	
 		
 	public double reward(pdState state, pdAction action ){
-		if (!state.hasPackage && !action.iftake){                     //no package in the city
-			return -5*state.currentCity.distanceTo(action.nextCity);
+		if (!state.hasPackage && !action.iftake){                    //no package in the city
+			if(action.nextCity.hasNeighbor(state.currentCity)) {
+				return -5*state.currentCity.distanceTo(action.nextCity);
+			} else return -100000000;
 		} else if(state.hasPackage && action.iftake) {
 			return TD.reward(state.currentCity, state.destineCity) - 5*state.currentCity.distanceTo(state.destineCity);
-		} else return -1000;
+		} else return -100000000;
 	}
 	
 	public void tempbestPolicyMapInit(){
@@ -161,15 +163,23 @@ public class ReactiveTemplate implements ReactiveBehavior {
         Action action;
         City currentCity = vehicle.getCurrentCity();
         
-        if (availableTask == null || random.nextDouble() > pPickup) {    // no task, next City = pdAction's nextCity
-        	
+//        if (availableTask == null || random.nextDouble() > pPickup) {    // no task, next City = pdAction's nextCity
+        if (availableTask == null) {    // no task, next City = pdAction's nextCity	
         	String stateKey = new pdState(currentCity).key;
+        	
+        	System.out.println(bestPolicyMap.get(stateKey).nextCity);
     		action = new Move(bestPolicyMap.get(stateKey).nextCity);
+    		System.out.println("moved");
+    		
 
         } else {   // package in city
-        	String statekey1 = new pdState(currentCity, availableTask.deliveryCity).key;
-        	action = new Move(bestPolicyMap.get(statekey1).nextCity);
-        	
+        	pdState state = new pdState(currentCity, availableTask.deliveryCity);
+        	String statekey1 = state.key;
+        	if(bestPolicyMap.get(statekey1).iftake) {
+        		action = new Pickup(availableTask);
+        	} else {
+        		action = new Move(bestPolicyMap.get(statekey1).nextCity);
+        	}
         }
         return action;
 	}
